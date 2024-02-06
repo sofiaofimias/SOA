@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks</title>
+</head>
+<body>
+    <h1>Tasks</h1>
+
+    <h2>Get Tasks</h2>
+    <button onclick="getTasks()">Get Tasks</button>
+    <div id="tasks"></div>
+
+    <h2>Add Task</h2>
+    <form id="addTaskForm" onsubmit="addTask(event)">
+        <label for="taskDescription">Task Description:</label>
+        <input type="text" id="taskDescription" name="taskDescription" required>
+        <button type="submit">Add Task</button>
+    </form>
+
+    <h2>Update Task</h2>
+    <form id="updateTaskForm" onsubmit="updateTask(event)">
+        <label for="taskId">Task ID:</label>
+        <input type="number" id="taskId" name="taskId" required>
+        <label for="completed">Completed:</label>
+        <input type="checkbox" id="completed" name="completed">
+        <button type="submit">Update Task</button>
+    </form>
+
+    <script>
+        function getTasks() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    const tasksDiv = document.getElementById('tasks');
+                    tasksDiv.innerHTML = '';
+                    tasks.forEach(task => {
+                        const taskDiv = document.createElement('div');
+                        taskDiv.textContent = `ID: ${task.id}, Description: ${task.description} - Completed: ${task.completed}`;
+                        tasksDiv.appendChild(taskDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching tasks:', error));
+        }
+
+        function addTask(event) {
+            event.preventDefault();
+            const taskDescription = document.getElementById('taskDescription').value;
+            fetch('/api/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ description: taskDescription })
+            })
+                .then(response => response.json())
+                .then(newTask => {
+                    console.log('New task added:', newTask);
+                    getTasks(); 
+                })
+                .catch(error => console.error('Error adding task:', error));
+        }
+
+        function updateTask(event) {
+            event.preventDefault();
+            const taskId = document.getElementById('taskId').value;
+            const completed = document.getElementById('completed').checked;
+            fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ completed: completed })
+            })
+                .then(response => response.json())
+                .then(updatedTask => {
+                    console.log('Task updated:', updatedTask);
+                    getTasks();
+                })
+                .catch(error => console.error('Error updating task:', error));
+        }
+    </script>
+</body>
+</html>
